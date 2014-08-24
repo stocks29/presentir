@@ -7,19 +7,27 @@ defmodule Presentir.SlideServer do
 
   # API
   def start_link(presentation) do
-    GenServer.start_link(__MODULE__, [presentation], [name: __MODULE__])
+    GenServer.start_link(__MODULE__, [presentation])
   end
 
-  def next_slide do
-    GenServer.cast(__MODULE__, :next_slide)
+  def first_slide(server) do
+    GenServer.cast(server, :first_slide)
   end
 
-  def previous_slide do
-    GenServer.cast(__MODULE__, :previous_slide)
+  def next_slide(server) do
+    GenServer.cast(server, :next_slide)
   end
 
-  def add_client(client) do
-    GenServer.cast(__MODULE__, {:add_client, client})
+  def previous_slide(server) do
+    GenServer.cast(server, :previous_slide)
+  end
+
+  def add_client(server, client) do
+    GenServer.cast(server, {:add_client, client})
+  end
+
+  def remove_client(server, client) do
+    GenServer.cast(server, {:remove_client, client})
   end
 
 
@@ -31,6 +39,11 @@ defmodule Presentir.SlideServer do
     clients = []
     IO.puts "starting presentation server"
     {:ok, {previous_slides, current_slide, next_slides, clients}}
+  end
+
+  def handle_cast(:first_slide, state) do
+    new_state = go_to_first_slide(state)
+    {:noreply, new_state}
   end
 
   def handle_cast(:next_slide, state) do
@@ -48,7 +61,27 @@ defmodule Presentir.SlideServer do
     {:noreply, {previous_slides, current_slide, next_slides, [client|clients]}}
   end
 
+  def handle_cast({:remove_client, client}, state) do
+    new_state = state_without_client(client, state)
+    {:noreply, new_state}
+  end
+
+
+
   # Internal functions
+  defp state_without_client(client, {previous_slides, current_slide, next_slides, clients}) do
+    new_clients = Enum.filter(clients, fn (this_client) -> this_client != client end)  
+    {previous_slides, current_slide, next_slides, new_clients}
+  end
+
+  defp go_to_first_slide({[], current_slide, _next_slides, clients} = state) do
+    send_slide(current_slide, clients)
+    state
+  end
+  defp go_to_first_slide({[previous_slide|previous_slides], current_slide, next_slides, clients}) do
+    go_to_first_slide({previous_slides, previous_slide, [current_slide|next_slides], clients})
+  end
+
   defp advance_slide({_previous_slides, current_slide, [], clients} = state) do 
     send_slide(current_slide, clients)
     state
@@ -80,9 +113,17 @@ defmodule Presentir.SlideServer do
   end
 
   defp clear(client) do
-    str = Enum.join(
-      Enum.map(Range.new(1,100), fn(_) -> "\n" end),
-      "")
+    clear_screen client
+    move_cursor_to_top_left client
+  end
+
+  defp clear_screen(client) do
+    str = <<27>> <> "[2J"
+    :gen_tcp.send(client, str)
+  end
+
+  defp move_cursor_to_top_left(client) do
+    str = <<27>> <> "[H"
     :gen_tcp.send(client, str)
   end
 

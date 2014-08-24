@@ -5,7 +5,7 @@ defmodule Presentir do
   alias Presentir.UnorderedList, as: UL
 
   def test do
-    presentation = Presentation.new("Function Functional Programming", "Bob Stockdale", slides)
+    presentation = Presentation.new("Functional Functional Programming", "Bob Stockdale", slides)
     # IO.puts Presentir.Render.as_text(presentation)
     # IO.puts Render.as_text(Presentation.slides(presentation))
     presentation
