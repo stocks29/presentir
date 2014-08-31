@@ -1,7 +1,6 @@
 defmodule Presentir do
   alias Presentir.Presentation, as: Presentation
   alias Presentir.Slide, as: Slide
-  alias Presentir.Render, as: Render
   alias Presentir.UnorderedList, as: UL
 
   def test do
@@ -12,29 +11,50 @@ defmodule Presentir do
   end
 
   defp slides() do
-    Enum.take_while(
-      Enum.map(Range.new(1,20), fn(i) -> slide(i) end),
-      fn(i) -> i end)
+    Enum.map(slide_order, fn(name) -> slide(name) end)
   end
 
-  defp slide(1) do
+  defp slide_order do
+    [
+      :goals,
+      :intro
+    ]
+  end
+
+  defp slide(:goals) do
+    Slide.new("Goals of this LnL", [
+      "What I hope to accomplish with this LnL",
+      UL.new([
+        "Basic understanding of functional programming",
+        "Insight into the benefits of functional programming",
+        "Concepts that you can take back any apply to your software"
+        ])
+      ])
+  end
+
+  defp slide(:intro) do
     Slide.new("Intro to Functional Programming", [
-      "Functional programming is about composing many small functions to build programs",
-      UL.new(["Foo", "Bar"]),
-      "Other text here", 
-      UL.new(["Baz", "Quux"]) ])   
-  end
-
-  defp slide(2) do
-    Slide.new("Slide 2")
-  end
-
-  defp slide(3) do
-    Slide.new("Slide 3")
+      UL.new([
+        "Style of building computer programs",
+        "Based on lamda calculus",
+        UL.new([
+          "\"Provides a theoretical framework for describing functions and their evaluation\""
+          ]),
+        "Avoids state and mutable data",
+        "Declarative - programming is done with expressions",
+        "Eliminating side effects",
+        UL.new([
+          "changes in state that don't depend on function inputs"
+          ]),
+        "Functional programs are generally easier to understand and reason about"
+        ])
+      ])
   end
 
   defp slide(_) do
-    false
+    Slide.new("404", [
+      "This is not the slide you're looking for"
+      ])
   end
 
 end
