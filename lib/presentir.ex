@@ -4,14 +4,18 @@ defmodule Presentir do
   alias Presentir.UnorderedList, as: UL
 
   def test do
-    presentation = Presentation.new("Functional Functional Programming", "Bob Stockdale", slides)
+    presentation = Presentation.new(
+      "Functional Functional Programming", 
+      "Bob Stockdale", 
+      "A look into the awesomeness of functional programming",
+      slides)
     # IO.puts Presentir.Render.as_text(presentation)
     # IO.puts Render.as_text(Presentation.slides(presentation))
     presentation
   end
 
   defp slides() do
-    Enum.map(slide_order, fn(name) -> slide(name) end)
+    Enum.map(slide_order, &slide/1)
   end
 
   defp slide_order do
@@ -27,7 +31,7 @@ defmodule Presentir do
       UL.new([
         "Basic understanding of functional programming",
         "Insight into the benefits of functional programming",
-        "Concepts that you can take back any apply to your software"
+        "Concepts that you can take back and apply to your software"
         ])
       ])
   end

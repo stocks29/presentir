@@ -1,7 +1,6 @@
 defmodule Presentir.SlideServer do
   use GenServer
   alias Presentir.Presentation, as: Presentation
-  alias Presentir.Slide, as: Slide
   alias Presentir.Render, as: Render
 
 
@@ -33,9 +32,8 @@ defmodule Presentir.SlideServer do
 
   # Callbacks
   def init([presentation]) do
+    [current_slide|next_slides] = Presentation.slides(presentation)
     previous_slides = []
-    current_slide = Slide.new("", Render.as_text(presentation))
-    next_slides = Presentation.slides(presentation)
     clients = []
     IO.puts "starting presentation server"
     {:ok, {previous_slides, current_slide, next_slides, clients}}
