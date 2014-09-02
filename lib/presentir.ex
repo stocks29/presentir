@@ -348,7 +348,8 @@ defmodule Presentir do
         "Processes are isolated",
         "No shared memory",
         "Communication by async message passing",
-        "Not unusually to have hundreds of millions of processes"
+        "Not unusually to have hundreds of millions of processes",
+        "OTP libraries provide some common patterns"
         ])
       ]) 
   end
