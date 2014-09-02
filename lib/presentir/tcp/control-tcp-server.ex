@@ -1,28 +1,7 @@
-defmodule Presentir.MasterTcpServer do
+defmodule Presentir.ControlTcpServer do
   alias Presentir.SlideServer, as: SlideServer
 
-  def listen(master_port, client_port, slide_server) do
-    accept(master_port, slide_server)
-    Presentir.ClientTcpServer.listen(client_port, slide_server)
-  end
-
-  defp accept(port, slide_server) do
-    {:ok, socket} = :gen_tcp.listen(port, [:binary, packet: :line, active: false])
-    Task.Supervisor.start_child(Presentir.TaskSupervisor, fn -> 
-      master_loop_acceptor(socket, slide_server)
-    end)
-  end
-
-  defp master_loop_acceptor(socket, slide_server) do
-    {:ok, client} = :gen_tcp.accept(socket)
-    Task.Supervisor.start_child(Presentir.TaskSupervisor, fn -> 
-      SlideServer.add_client(slide_server, client)
-      serve(client, slide_server)
-    end)
-    master_loop_acceptor(socket, slide_server)
-  end
-
-  defp serve(client, slide_server) do
+  def serve(client, slide_server) do
     client
     |> read_line()
     |> handle_read_line(client, slide_server)
@@ -44,10 +23,8 @@ defmodule Presentir.MasterTcpServer do
     serve(client, slide_server)
   end
 
-  defp handle_read_line({:ok, "q" <> _data}, client, slide_server) do
-    SlideServer.remove_client(slide_server, client)
-    :gen_tcp.send(client, "Bye!\r\n")    
-    :gen_tcp.close(client)
+  defp handle_read_line({:ok, "q" <> _data}, _client, slide_server) do
+    SlideServer.stop(slide_server)
   end
 
   defp handle_read_line({:ok, "p" <> _data}, client, slide_server) do

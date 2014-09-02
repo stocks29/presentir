@@ -1,4 +1,5 @@
 defmodule Presentir.MainTcpServer do
+  alias Presentir.SlideServer, as: SlideServer
 
   def listen(server_port) do
     accept server_port
@@ -30,12 +31,12 @@ defmodule Presentir.MainTcpServer do
   defp handle_read_line({:error, :closed}, _client) do end
 
   defp handle_read_line({:ok, "s " <> port}, client) do
-    port = port
-    |> String.strip
-    |> String.to_integer
-    {:ok, server} = Presentir.SlideSupervisor.start_server(Presentir.test)
-    Presentir.MasterTcpServer.listen(port + 1000, port, server)
+    port = port |> String.strip |> String.to_integer
+    {:ok, slide_server} = Presentir.SlideSupervisor.start_server(Presentir.test, port)
     :gen_tcp.send(client, "Presentation running on port #{port}\r\n")    
+    SlideServer.add_client(slide_server,client)
+    Presentir.ControlTcpServer.serve(client, slide_server)
+    :gen_tcp.send(client, "Presentation ended on port #{port}\r\n")    
     serve(client)
   end
 

@@ -5,8 +5,8 @@ defmodule Presentir.SlideServer do
 
 
   # API
-  def start_link(presentation) do
-    GenServer.start_link(__MODULE__, [presentation])
+  def start_link(presentation, port) do
+    GenServer.start_link(__MODULE__, [presentation, port])
   end
 
   def first_slide(server) do
@@ -29,13 +29,19 @@ defmodule Presentir.SlideServer do
     GenServer.cast(server, {:remove_client, client})
   end
 
+  def stop(server, message \\ "The presentation has ended") do
+    GenServer.cast(server, {:stop, message})
+  end
+
+
 
   # Callbacks
-  def init([presentation]) do
+  def init([presentation, port]) do
     [current_slide|next_slides] = Presentation.slides(presentation)
     previous_slides = []
     clients = []
     IO.puts "starting presentation server"
+    Presentir.ClientTcpServer.listen(port, self())
     {:ok, {previous_slides, current_slide, next_slides, clients}}
   end
 
@@ -62,6 +68,16 @@ defmodule Presentir.SlideServer do
   def handle_cast({:remove_client, client}, state) do
     new_state = state_without_client(client, state)
     {:noreply, new_state}
+  end
+
+  def handle_cast({:stop, message}, state = {_, _, _, clients}) do
+    Enum.each(clients, fn (client) ->
+      spawn fn ->
+        clear client
+        send_data "#{message}\r\n", client
+      end
+    end)
+    {:stop, :normal, state}
   end
 
 
@@ -106,9 +122,11 @@ defmodule Presentir.SlideServer do
   defp send_slide(slide, client) do
     spawn fn -> 
       clear client
-      :gen_tcp.send(client, Render.as_text(slide))
+      send_data Render.as_text(slide), client
     end
   end
+
+  defp send_data(data, client), do: :gen_tcp.send(client, data)
 
   defp clear(client) do
     clear_screen client
@@ -117,12 +135,12 @@ defmodule Presentir.SlideServer do
 
   defp clear_screen(client) do
     str = <<27>> <> "[2J"
-    :gen_tcp.send(client, str)
+    :gen_tcp.send client, str
   end
 
   defp move_cursor_to_top_left(client) do
     str = <<27>> <> "[H"
-    :gen_tcp.send(client, str)
+    :gen_tcp.send client, str
   end
 
 end
