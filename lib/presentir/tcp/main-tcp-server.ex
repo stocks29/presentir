@@ -1,13 +1,9 @@
 defmodule Presentir.MainTcpServer do
   alias Presentir.SlideServer, as: SlideServer
 
-  def listen(server_port) do
-    accept server_port
-  end
-
-  defp accept(port) do
+  def listen(port) do
     {:ok, socket} = :gen_tcp.listen(port, [:binary, packet: :line, active: false])
-    main_loop_acceptor(socket)
+    main_loop_acceptor socket
   end
 
   defp main_loop_acceptor(socket) do

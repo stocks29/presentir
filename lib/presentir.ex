@@ -2,6 +2,7 @@ defmodule Presentir do
   alias Presentir.Presentation, as: Presentation
   alias Presentir.Slide, as: Slide
   alias Presentir.UnorderedList, as: UL
+  alias Presentir.Pre, as: Pre
 
   def test do
     presentation = Presentation.new(
@@ -20,7 +21,7 @@ defmodule Presentir do
 
   defp slide_order do
     [
-      :goals,
+      :take_away,
       :intro,
       :why_functional_programming,
       :languages,
@@ -52,18 +53,27 @@ defmodule Presentir do
     ]
   end
 
-  defp slide(:goals) do
-    Slide.new("Goals of this LnL", [
+  defp slide(:take_away) do
+    Slide.new("Take-Aways", [
       UL.new([
         "Basic understanding of functional programming",
         "Insight into the benefits of functional programming",
         "Functional concepts that can be applied to non-functional software"
-        ])
+        ]),
+      Pre.new("
+        
+              \\\\
+               \\\\
+              //\\\\
+             //  \\\\
+            //    \\\\
+        ")
       ])
   end
 
   defp slide(:intro) do
     Slide.new("Intro to Functional Programming", [
+
       UL.new([
         "Style of building programs",
         "Based on lamda calculus",
