@@ -54,7 +54,6 @@ defmodule Presentir do
 
   defp slide(:goals) do
     Slide.new("Goals of this LnL", [
-      "What I hope to accomplish with this LnL",
       UL.new([
         "Basic understanding of functional programming",
         "Insight into the benefits of functional programming",
@@ -66,7 +65,7 @@ defmodule Presentir do
   defp slide(:intro) do
     Slide.new("Intro to Functional Programming", [
       UL.new([
-        "Style of building computer programs",
+        "Style of building programs",
         "Based on lamda calculus",
         UL.new([
           "\"Provides a theoretical framework for describing functions and their evaluation\""
@@ -412,7 +411,7 @@ defmodule Presentir do
   end
 
   defp slide(:moar_examples), do: Slide.new("Moar Examples")
-  defp slide(:questions), do: Slide.new("Question?")
+  defp slide(:questions), do: Slide.new("Questions?")
 
   defp slide(_) do
     Slide.new("404", [
