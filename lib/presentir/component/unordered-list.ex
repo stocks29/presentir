@@ -3,6 +3,7 @@ defmodule Presentir.UnorderedListItem do
 
   defimpl Presentir.Render, for: Presentir.UnorderedListItem do
     def as_text(li), do: render_lines(li) |> format_lines() |> Enum.reverse() |> Enum.join("\n")
+    def as_html(li), do: "<li>" <> Presentir.Render.as_html(li.content) <> "</li>"
 
     defp render_lines(li), do: Presentir.Render.as_text(li.content) |> String.split("\n")
 
@@ -29,6 +30,7 @@ defmodule Presentir.UnorderedList do
 
   defimpl Presentir.Render, for: Presentir.UnorderedList do
     def as_text(ul), do: as_text(ul.items, "")
+    def as_html(ul), do: "<ul>" <> Presentir.Render.as_html(ul.items) <> "</ul>"
 
     defp as_text([], acc), do: acc
     defp as_text([item|more_items], acc) do

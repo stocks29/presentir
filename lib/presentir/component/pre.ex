@@ -5,5 +5,6 @@ defmodule Presentir.Pre do
 
   defimpl Presentir.Render, for: Presentir.Pre do
     def as_text(pre), do: pre.content
+    def as_html(pre), do: "<pre>#{pre.content}</pre>"
   end
 end

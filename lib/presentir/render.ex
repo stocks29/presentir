@@ -1,16 +1,22 @@
 defprotocol Presentir.Render do
   @doc "Returns the rendered representation of the presentation component"
   def as_text(component)
+  def as_html(component)
 end
 
 defimpl Presentir.Render, for: List do
-  def as_text(list) do
-    as_text(list, "")
-  end
+  def as_text(list), do: as_text(list, "")
+  def as_html(list), do: as_html(list, "")
 
   defp as_text([], acc), do: acc
   defp as_text([head|tail], acc) do
     as_text(tail, acc <> Presentir.Render.as_text(head) <> "\n")
+  end
+
+  defp as_html([], acc), do: acc
+  defp as_html([head|tail], acc) do
+    rendered = Presentir.Render.as_html(head)
+    as_html(tail, acc <> "#{rendered}\n") 
   end
 end
 
@@ -21,6 +27,8 @@ defimpl Presentir.Render, for: BitString do
     |> Enum.reverse()
     |> Enum.join("\n")
   end
+
+  def as_html(string), do: string
 
   defp tokens(string) do
     String.split(string)

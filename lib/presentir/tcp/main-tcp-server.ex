@@ -28,7 +28,7 @@ defmodule Presentir.MainTcpServer do
 
   defp handle_read_line({:ok, "s " <> port}, client) do
     port = port |> String.strip |> String.to_integer
-    {:ok, slide_server} = Presentir.SlideSupervisor.start_server(Presentir.test, port)
+    {:ok, slide_server} = Presentir.SlideSupervisor.start_server(Presentir.presentation, port)
     :gen_tcp.send(client, "Presentation running on port #{port}\r\n")    
     SlideServer.add_client(slide_server,client)
     Presentir.ControlTcpServer.serve(client, slide_server)

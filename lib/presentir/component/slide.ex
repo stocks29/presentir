@@ -21,6 +21,10 @@ defmodule Presentir.Slide do
       "\n#{slide.title}\n#{underline}\n\n#{content}\n" 
     end
 
+    def as_html(slide) do
+      "<section><h1>#{slide.title}</h1>" <> Presentir.Render.as_html(slide.content) <> "</section>"
+    end
+
     defp underline(str, char) do
       Enum.map(String.to_char_list(str), fn(_) -> char end)
     end

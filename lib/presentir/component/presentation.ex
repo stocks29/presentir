@@ -26,5 +26,19 @@ defmodule Presentir.Presentation do
     def as_text(presentation) do
       "#{presentation.name}\n\nby #{presentation.author}" 
     end
+
+    def as_html(presentation) do
+      "<h1>#{presentation.name}</h1>\n\n<p>by #{presentation.author}</p>" 
+    end
+
+    defp html(items) when is_list(items) do
+      html_list(items) |> Enum.join("\n")
+    end
+
+    defp html_list(items) when is_list(items) do
+      Enum.map(items, fn (item) -> 
+        Presentir.Render.as_html(item) 
+      end)
+    end
   end
 end
