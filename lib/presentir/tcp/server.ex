@@ -1,26 +1,32 @@
 defmodule Presentir.Tcp.Server do
 
-  # def listen(supervisor, handler) when is_function(handler) and is_atom(supervisor) do
-  #   {:ok, socket} = :gen_tcp.listen(0, [:binary, packet: :line, active: false])
-  #   {:ok, port} = :inet.port(socket)
-  #   Task.Supervisor.start_child(supervisor, fn -> 
-  #     loop_acceptor(socket, supervisor, handler)
-  #   end)
-  #   port
-  # end
-
-  def listen(port, supervisor, handler) when is_integer(port) and is_function(handler) and is_atom(supervisor) do
-    {:ok, socket} = :gen_tcp.listen(port, [:binary, packet: :line, active: false, reuseaddr: true])
-    loop_acceptor(socket, supervisor, handler)
+  def listen_bg(port, supervisor, handler, on_accept \\ fn(_) -> :ok end) when is_integer(port) and is_function(handler) and is_atom(supervisor) do
+    {:ok, socket} = listen(port)
+    Task.Supervisor.start_child(supervisor, fn -> 
+      loop_acceptor(socket, supervisor, handler, on_accept)
+    end)
     :ok
   end
 
-  defp loop_acceptor(socket, supervisor, handler) do
-    {:ok, client} = :gen_tcp.accept(socket)
+  def listen(port, supervisor, handler, on_accept \\ fn(_) -> :ok end) when is_integer(port) and is_function(handler) and is_atom(supervisor) do
+    {:ok, socket} = listen(port)
+    loop_acceptor(socket, supervisor, handler, on_accept)
+    :ok
+  end
+
+  defp listen(port), do: :gen_tcp.listen(port, [:binary, packet: :line, active: false, reuseaddr: true])
+
+  defp loop_acceptor(socket, supervisor, handler, on_accept) do
+    handle_accept(:gen_tcp.accept(socket), socket, supervisor, handler, on_accept)
+  end
+
+  defp handle_accept({:error, :closed}, _socket, _supervisor, _handler, _on_accept), do: :ok
+  defp handle_accept({:ok, client}, socket, supervisor, handler, on_accept) do
     Task.Supervisor.start_child(supervisor, fn -> 
+      :ok = on_accept.(client)
       serve(client, handler)
     end)
-    loop_acceptor(socket, supervisor, handler) 
+    loop_acceptor(socket, supervisor, handler, on_accept) 
   end
 
   def serve(client, handler) do

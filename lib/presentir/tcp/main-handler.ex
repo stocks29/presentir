@@ -1,11 +1,7 @@
-defmodule Presentir.MainTcpServer do
+defmodule Presentir.Tcp.MainHandler do
   alias Presentir.SlideServer, as: SlideServer
   alias Presentir.Tcp.Server, as: TcpServer
   alias Presentir.Tcp.SlideControlHandler, as: SlideControlHandler
-
-  def listen(port) do
-    TcpServer.listen(port, Presentir.TaskSupervisor, &handler/2)
-  end
 
   def handler(line, client) do
     handle_read_line(line, client)
@@ -38,7 +34,7 @@ defmodule Presentir.MainTcpServer do
   end
 
   defp presentation_control(control_client, slide_server) do
-    Presentir.Tcp.Server.serve(control_client, fn (line, client) ->
+    TcpServer.serve(control_client, fn (line, client) ->
       SlideControlHandler.handler(line, client, slide_server)
     end)
   end

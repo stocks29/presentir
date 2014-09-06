@@ -6,7 +6,7 @@ defmodule Presentir.SlideServer do
 
   # API
   def new(presentation, port) do
-    Presentir.SlideSupervisor.start_server(Presentir.presentation, port)
+    Presentir.SlideSupervisor.start_server(presentation, port)
   end
 
   def start_link(presentation, port) do
@@ -38,14 +38,13 @@ defmodule Presentir.SlideServer do
   end
 
 
-
   # Callbacks
   def init([presentation, port]) do
+    start_tcp_server(port, Presentir.TaskSupervisor, self())
     [current_slide|next_slides] = Presentation.slides(presentation)
     previous_slides = []
     clients = []
-    IO.puts "starting presentation server"
-    Presentir.ClientTcpServer.listen(port, self())
+    IO.puts "Starting presentation server on port #{port}"
     {:ok, {previous_slides, current_slide, next_slides, clients}}
   end
 
@@ -87,6 +86,16 @@ defmodule Presentir.SlideServer do
 
 
   # Internal functions
+  defp start_tcp_server(port, supervisor, slide_server) do
+    Presentir.Tcp.Server.listen_bg(port, supervisor,
+      fn (line, client) -> Presentir.Tcp.ClientHandler.handler(line, client, slide_server) end, 
+      fn (client) -> 
+        IO.puts "client connected on port #{port}"
+        add_client(slide_server, client) 
+        :ok
+      end)
+  end
+
   defp state_without_client(client, {previous_slides, current_slide, next_slides, clients}) do
     new_clients = Enum.filter(clients, fn (this_client) -> this_client != client end)  
     {previous_slides, current_slide, next_slides, new_clients}
