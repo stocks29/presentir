@@ -5,6 +5,10 @@ defmodule Presentir.SlideServer do
 
 
   # API
+  def new(presentation, port) do
+    Presentir.SlideSupervisor.start_server(Presentir.presentation, port)
+  end
+
   def start_link(presentation, port) do
     GenServer.start_link(__MODULE__, [presentation, port])
   end

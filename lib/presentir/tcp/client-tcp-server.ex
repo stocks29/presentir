@@ -6,7 +6,7 @@ defmodule Presentir.ClientTcpServer do
   end
 
   defp accept(port, slide_server) do
-    {:ok, socket} = :gen_tcp.listen(port, [:binary, packet: :line, active: false])
+    {:ok, socket} = :gen_tcp.listen(port, [:binary, packet: :line, active: false, reuseaddr: true])
     IO.puts "Accepting connections on port #{port}"
     Task.Supervisor.start_child(Presentir.TaskSupervisor, fn -> 
       client_loop_acceptor(socket, slide_server, 0)
@@ -14,7 +14,11 @@ defmodule Presentir.ClientTcpServer do
   end
 
   defp client_loop_acceptor(socket, slide_server, count) do
-    {:ok, client} = :gen_tcp.accept(socket)
+    handle_accept(:gen_tcp.accept(socket), socket, slide_server, count)
+  end
+
+  defp handle_accept({:error, :closed}, _socket, _slide_server, _count), do: :ok
+  defp handle_accept({:ok, client}, socket, slide_server, count) do
     handle_client(client, slide_server)
     new_count = count + 1
     IO.puts "client #{new_count} connected"
