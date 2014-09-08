@@ -120,7 +120,7 @@ defmodule Presentir do
         "Clojure",
         UL.new(["Akamai, Brand Karma, Citi"]),
         "Erlang",
-        UL.new(["AdRoll, Amazon (SimpleDB), Facebook, Whatsapp, Ericcson, CouchDB, Riak, RabbitMQ, T-Mobile, Yahoo!"]),
+        UL.new(["AdRoll, Amazon, Facebook, Whatsapp, Ericcson, CouchDB, Riak, RabbitMQ, T-Mobile, Yahoo!"]),
         "Haskell",
         UL.new(["AT&T, Bank of America, Facebook, Google, Rackspace, Intel, NVIDIA"]),
         "Scala",

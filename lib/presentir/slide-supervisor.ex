@@ -5,8 +5,8 @@ defmodule Presentir.SlideSupervisor do
     Supervisor.start_link(__MODULE__, :ok, [name: __MODULE__])
   end
 
-  def start_server(presentation, port) do
-    Supervisor.start_child(__MODULE__, [presentation, port])
+  def start_server(presentation) do
+    Supervisor.start_child(__MODULE__, [presentation])
   end
 
   def init(:ok) do

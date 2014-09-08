@@ -5,10 +5,7 @@ defmodule Presentir.Tcp.SlideControlHandler do
     handle_read_line(request, client, slide_server)
   end
 
-  defp handle_read_line({:error, :closed}, client, slide_server) do
-    SlideServer.remove_client(slide_server, client)
-    :stop
-  end
+  defp handle_read_line({:error, :closed}, _client, _slide_server), do: :stop
 
   defp handle_read_line({:ok, "\r\n"}, client, slide_server) do
     handle_read_line({:ok, "next"}, client, slide_server)

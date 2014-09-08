@@ -42,5 +42,6 @@ defmodule Presentir.Tcp.Server do
 
   defp process_response(:ok, client, handler), do: serve(client, handler)
   defp process_response(:stop, _client, _handler), do: :ok
+  defp process_response(nil, _client, _handle), do: :ok
 
 end

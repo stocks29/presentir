@@ -1,16 +1,15 @@
 defmodule Presentir.SlideServer do
   use GenServer
   alias Presentir.Presentation, as: Presentation
-  alias Presentir.Render, as: Render
-
+  
 
   # API
-  def new(presentation, port) do
-    Presentir.SlideSupervisor.start_server(presentation, port)
+  def new(presentation) do
+    Presentir.SlideSupervisor.start_server(presentation)
   end
 
-  def start_link(presentation, port) do
-    GenServer.start_link(__MODULE__, [presentation, port])
+  def start_link(presentation) do
+    GenServer.start_link(__MODULE__, [presentation])
   end
 
   def first_slide(server) do
@@ -39,12 +38,11 @@ defmodule Presentir.SlideServer do
 
 
   # Callbacks
-  def init([presentation, port]) do
-    start_tcp_server(port, Presentir.TaskSupervisor, self())
+  def init([presentation]) do
     [current_slide|next_slides] = Presentation.slides(presentation)
     previous_slides = []
     clients = []
-    IO.puts "Starting presentation server on port #{port}"
+    IO.puts "Starting presentation server #{inspect self()}"
     {:ok, {previous_slides, current_slide, next_slides, clients}}
   end
 
@@ -64,7 +62,7 @@ defmodule Presentir.SlideServer do
   end
 
   def handle_cast({:add_client, client}, {previous_slides, current_slide, next_slides, clients}) do
-    send_slide(current_slide, client)
+    communicate(send_slide(current_slide), client)
     {:noreply, {previous_slides, current_slide, next_slides, [client|clients]}}
   end
 
@@ -75,27 +73,18 @@ defmodule Presentir.SlideServer do
 
   def handle_cast({:stop, message}, state = {_, _, _, clients}) do
     Enum.each(clients, fn (client) ->
-      spawn fn ->
-        clear client
-        send_data "#{message}\r\n", client
-      end
+      communicate(fn(client) ->
+        send_message(message).(client)
+        # TODO: Sleep??
+        disconnect.(client)
+      end, client)
     end)
+    IO.puts "Stopping presentation server #{inspect self()}"
     {:stop, :normal, state}
   end
 
 
-
   # Internal functions
-  defp start_tcp_server(port, supervisor, slide_server) do
-    Presentir.Tcp.Server.listen_bg(port, supervisor,
-      fn (line, client) -> Presentir.Tcp.ClientHandler.handler(line, client, slide_server) end, 
-      fn (client) -> 
-        IO.puts "client connected on port #{port}"
-        add_client(slide_server, client) 
-        :ok
-      end)
-  end
-
   defp state_without_client(client, {previous_slides, current_slide, next_slides, clients}) do
     new_clients = Enum.filter(clients, fn (this_client) -> this_client != client end)  
     {previous_slides, current_slide, next_slides, new_clients}
@@ -128,32 +117,42 @@ defmodule Presentir.SlideServer do
   end
 
   defp send_slide(slide, clients) when is_list(clients) do
-    Enum.each(clients, fn(client) -> send_slide(slide, client) end)
+    Enum.each(clients, fn(client) -> communicate(send_slide(slide), client) end)
   end
 
-  defp send_slide(nil, _client) do end
-  defp send_slide(slide, client) do
-    spawn fn -> 
-      clear client
-      send_data Render.as_text(slide), client
+  defp communicate(do_comm, client) when is_function(do_comm) do
+    spawn fn ->
+      handle_send_result(do_comm.(client), client)
     end
   end
 
-  defp send_data(data, client), do: :gen_tcp.send(client, data)
-
-  defp clear(client) do
-    clear_screen client
-    move_cursor_to_top_left client
+  defp send_slide(nil) do fn -> :ok end end
+  defp send_slide(slide) do
+    fn(client) -> 
+      Presentir.Client.send_slide(client, slide)
+    end
   end
 
-  defp clear_screen(client) do
-    str = <<27>> <> "[2J"
-    :gen_tcp.send client, str
+  defp send_message(message) do
+    fn(client) -> 
+      Presentir.Client.send_message(client, message)
+    end
   end
 
-  defp move_cursor_to_top_left(client) do
-    str = <<27>> <> "[H"
-    :gen_tcp.send client, str
+  defp disconnect do
+    fn(client) -> 
+      Presentir.Client.disconnect(client) 
+    end
+  end
+
+  defp handle_send_result(:ok, _client), do: :ok
+  defp handle_send_result(_, client) do 
+    IO.puts "removing dead client"
+    remove_client(client)
+  end
+
+  defp remove_client(client) do
+    remove_client(self(), client) 
   end
 
 end

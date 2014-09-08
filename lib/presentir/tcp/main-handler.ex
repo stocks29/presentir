@@ -26,9 +26,10 @@ defmodule Presentir.Tcp.MainHandler do
   end
 
   defp start_server(port, client) do
-    {:ok, slide_server} = SlideServer.new(Presentir.presentation, port)
+    {:ok, slide_server} = SlideServer.new(Presentir.presentation)
+    start_tcp_server(port, Presentir.TaskSupervisor, slide_server)
     :gen_tcp.send(client, "Presentation running on port #{port}\r\n")    
-    SlideServer.add_client(slide_server, client)
+    SlideServer.add_client(slide_server, Presentir.Tcp.Client.new(client))
     presentation_control(client, slide_server)
     :gen_tcp.send(client, "Presentation ended on port #{port}\r\n")    
   end
@@ -37,6 +38,16 @@ defmodule Presentir.Tcp.MainHandler do
     TcpServer.serve(control_client, fn (line, client) ->
       SlideControlHandler.handler(line, client, slide_server)
     end)
+  end
+
+  defp start_tcp_server(port, supervisor, slide_server) do
+    Presentir.Tcp.Server.listen_bg(port, supervisor,
+      fn (line, client) -> Presentir.Tcp.ClientHandler.handler(line, client, slide_server) end, 
+      fn (client) -> 
+        IO.puts "client connected on port #{port}"
+        SlideServer.add_client(slide_server, Presentir.Tcp.Client.new(client)) 
+        :ok
+      end)
   end
 
 end
