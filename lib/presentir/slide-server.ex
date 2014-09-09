@@ -10,8 +10,7 @@ defmodule Presentir.SlideServer do
 
   def start_link(presentation) do
     uuid = UUID.uuid4() 
-    spawn fn -> IO.puts "Starting server with UUID=#{uuid}" end
-    GenServer.start_link(__MODULE__, [presentation], name: {:global, uuid})
+    GenServer.start_link(__MODULE__, [presentation, uuid], name: {:global, uuid})
   end
 
   def first_slide(server) do
@@ -40,11 +39,11 @@ defmodule Presentir.SlideServer do
 
 
   # Callbacks
-  def init([presentation]) do
+  def init([presentation, uuid]) do
     [current_slide|next_slides] = Presentation.slides(presentation)
     previous_slides = []
     clients = []
-    IO.puts "Starting presentation server #{inspect self()}"
+    IO.puts "Starting presentation server #{inspect self()} -> #{uuid}"
     {:ok, {previous_slides, current_slide, next_slides, clients}}
   end
 
