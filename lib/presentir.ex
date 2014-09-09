@@ -6,7 +6,7 @@ defmodule Presentir do
 
   def presentation do
     Presentation.new(
-      "Functional Functional Programming", 
+      "I Declare! Functional Programming Demystified", 
       "Bob Stockdale", 
       "A look into the awesomeness of functional programming",
       slides)
