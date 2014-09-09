@@ -27,6 +27,9 @@ defmodule Presentir.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    [{:timex, "~> 0.12.4"}]
+    [
+      {:timex, "~> 0.12.4"},
+      {:uuid, "~> 0.1.5"}
+    ]
   end
 end

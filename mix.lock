@@ -1,1 +1,2 @@
-%{"timex": {:package, "0.12.4"}}
+%{"timex": {:package, "0.12.4"},
+  "uuid": {:package, "0.1.5"}}
