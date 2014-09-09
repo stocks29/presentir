@@ -10,9 +10,8 @@ defmodule Presentir.SlideServer do
 
   def start_link(presentation) do
     uuid = UUID.uuid4() 
-    # IO.puts "Starting server with UUID=#{uuid}"
-    GenServer.start_link(__MODULE__, [presentation], name: :slideserver)
-    # GenServer.start_link(__MODULE__, [presentation], name: {:global, uuid})
+    IO.puts "Starting server with UUID=#{uuid}"
+    GenServer.start_link(__MODULE__, [presentation], name: {:global, uuid})
   end
 
   def first_slide(server) do
