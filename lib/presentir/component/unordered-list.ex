@@ -30,7 +30,7 @@ defmodule Presentir.UnorderedList do
 
   defimpl Presentir.Render, for: Presentir.UnorderedList do
     def as_text(ul), do: as_text(ul.items, "")
-    def as_html(ul), do: "<ul>" <> Presentir.Render.as_html(ul.items) <> "</ul>"
+    def as_html(ul), do: "<ul class=\"presentir-list\">" <> Presentir.Render.as_html(ul.items) <> "</ul>"
 
     defp as_text([], acc), do: acc
     defp as_text([item|more_items], acc) do

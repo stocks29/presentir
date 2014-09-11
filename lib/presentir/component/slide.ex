@@ -22,7 +22,7 @@ defmodule Presentir.Slide do
     end
 
     def as_html(slide) do
-      "<section><h1>#{slide.title}</h1>" <> Presentir.Render.as_html(slide.content) <> "</section>"
+      "<section><h1 class=\"presentir-title\">#{slide.title}</h1>" <> Presentir.Render.as_html(slide.content) <> "</section>"
     end
 
     defp underline(str, char) do

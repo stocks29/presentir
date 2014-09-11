@@ -28,7 +28,7 @@ defmodule Presentir.Presentation do
     end
 
     def as_html(presentation) do
-      "<h1>#{presentation.name}</h1>\n\n<p>by #{presentation.author}</p>" 
+      "<h1 class=\"presentir-title\">#{presentation.name}</h1>\n\n<p>by #{presentation.author}</p>" 
     end
 
     defp html(items) when is_list(items) do
