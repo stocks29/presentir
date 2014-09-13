@@ -254,7 +254,7 @@ defmodule Presentir do
         "Available in Erlang, Elixir and Haskell",
         "Used to further restrict which function is called",
         "Example:",
-        UL.new(["def double(n) when is_integer(n), do: 2 * n)"])
+        UL.new(["def double(n) when is_integer(n), do: 2 * n"])
         ])
       ]) 
   end
@@ -275,7 +275,7 @@ defmodule Presentir do
         "Currying is when a function which returns another function is called, then the returned function is called",
         "Elixir example:",
         UL.new([
-          "def sum(n), do: fun (m) -> n + m end)",
+          "def sum(n), do: fn (m) -> n + m end",
           "sum(2).(3)"
           ]),
         "Haskell has automatic currying",

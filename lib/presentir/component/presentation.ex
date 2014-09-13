@@ -23,22 +23,19 @@ defmodule Presentir.Presentation do
   end
   
   defimpl Presentir.Render, for: Presentir.Presentation do
-    def as_text(presentation) do
-      "#{presentation.name}\n\nby #{presentation.author}" 
+    def as_text(presentation), do: render(presentation, text_join, &Presentir.Render.as_text/1)
+    def as_html(presentation), do: render(presentation, html_join, &Presentir.Render.as_html/1)
+
+    defp render(presentation = %Presentir.Presentation{}, join_string, renderer) do 
+      render presentation.slides, join_string, renderer
     end
 
-    def as_html(presentation) do
-      "<h1 class=\"presentir-title\">#{presentation.name}</h1>\n\n<p>by #{presentation.author}</p>" 
+    defp render([], _join_string, _renderer), do: ""
+    defp render(items, join_string, renderer) when is_list(items) do
+      Enum.map(items, renderer) |> Enum.join(join_string)
     end
 
-    defp html(items) when is_list(items) do
-      html_list(items) |> Enum.join("\n")
-    end
-
-    defp html_list(items) when is_list(items) do
-      Enum.map(items, fn (item) -> 
-        Presentir.Render.as_html(item) 
-      end)
-    end
+    defp html_join, do: "\n<hr>\n"
+    defp text_join, do: "\n\n==================================================\n\n"
   end
 end
