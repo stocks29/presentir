@@ -10,23 +10,29 @@ defmodule Presentir.Tcp.SlideControlHandler do
   defp handle_read_line({:ok, "\r\n"}, client, slide_server) do
     handle_read_line({:ok, "next"}, client, slide_server)
   end
-  defp handle_read_line({:ok, "n" <> _data}, _client, slide_server) do
+  defp handle_read_line({:ok, "n" <> _}, _client, slide_server) do
     SlideServer.next_slide(slide_server)
     :ok
   end
 
-  defp handle_read_line({:ok, "q" <> _data}, _client, slide_server) do
+  defp handle_read_line({:ok, "q" <> _}, _client, slide_server) do
     SlideServer.stop(slide_server)
     :stop
   end
 
-  defp handle_read_line({:ok, "p" <> _data}, _client, slide_server) do
+  defp handle_read_line({:ok, "p" <> _}, _client, slide_server) do
     SlideServer.previous_slide(slide_server)
     :ok
   end
 
-  defp handle_read_line({:ok, "f" <> _data}, _client, slide_server) do
+  defp handle_read_line({:ok, "f" <> _}, _client, slide_server) do
     SlideServer.first_slide(slide_server)
+    :ok
+  end
+
+  defp handle_read_line({:ok, "i" <> _}, client, slide_server) do
+    id = SlideServer.id(slide_server)
+    :gen_tcp.send(client, "id: #{id}")
     :ok
   end
 

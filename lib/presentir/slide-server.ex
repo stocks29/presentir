@@ -37,6 +37,8 @@ defmodule Presentir.SlideServer do
     GenServer.cast(server, {:stop, message})
   end
 
+  def id(server), do: GenServer.call(server, :uuid)
+
 
   # Callbacks
   def init([presentation, uuid]) do
@@ -44,7 +46,11 @@ defmodule Presentir.SlideServer do
     previous_slides = []
     clients = []
     IO.puts "Starting presentation server #{inspect self()} -> #{uuid}"
-    {:ok, {previous_slides, current_slide, next_slides, clients}}
+    {:ok, {uuid, previous_slides, current_slide, next_slides, clients}}
+  end
+
+  def handle_call(:uuid, _from, {uuid, _, _, _, _} = state) do
+    {:reply, uuid, state} 
   end
 
   def handle_cast(:first_slide, state) do
@@ -62,9 +68,9 @@ defmodule Presentir.SlideServer do
     {:noreply, new_state}
   end
 
-  def handle_cast({:add_client, client}, {previous_slides, current_slide, next_slides, clients}) do
+  def handle_cast({:add_client, client}, {uuid, previous_slides, current_slide, next_slides, clients}) do
     communicate(send_slide(current_slide), client)
-    {:noreply, {previous_slides, current_slide, next_slides, [client|clients]}}
+    {:noreply, {uuid, previous_slides, current_slide, next_slides, [client|clients]}}
   end
 
   def handle_cast({:remove_client, client}, state) do
@@ -72,11 +78,10 @@ defmodule Presentir.SlideServer do
     {:noreply, new_state}
   end
 
-  def handle_cast({:stop, message}, state = {_, _, _, clients}) do
+  def handle_cast({:stop, message}, state = {_, _, _, _, clients}) do
     Enum.each(clients, fn (client) ->
       communicate(fn(client) ->
         send_message(message).(client)
-        # TODO: Sleep??
         disconnect.(client)
       end, client)
     end)
@@ -86,35 +91,35 @@ defmodule Presentir.SlideServer do
 
 
   # Internal functions
-  defp state_without_client(client, {previous_slides, current_slide, next_slides, clients}) do
+  defp state_without_client(client, {uuid, previous_slides, current_slide, next_slides, clients}) do
     new_clients = Enum.filter(clients, fn (this_client) -> this_client != client end)  
-    {previous_slides, current_slide, next_slides, new_clients}
+    {uuid, previous_slides, current_slide, next_slides, new_clients}
   end
 
-  defp go_to_first_slide({[], current_slide, _next_slides, clients} = state) do
+  defp go_to_first_slide({_uuid, [], current_slide, _next_slides, clients} = state) do
     send_slide(current_slide, clients)
     state
   end
-  defp go_to_first_slide({[previous_slide|previous_slides], current_slide, next_slides, clients}) do
-    go_to_first_slide({previous_slides, previous_slide, [current_slide|next_slides], clients})
+  defp go_to_first_slide({uuid, [previous_slide|previous_slides], current_slide, next_slides, clients}) do
+    go_to_first_slide({uuid, previous_slides, previous_slide, [current_slide|next_slides], clients})
   end
 
-  defp advance_slide({_previous_slides, current_slide, [], clients} = state) do 
+  defp advance_slide({_uuid, _previous_slides, current_slide, [], clients} = state) do 
     send_slide(current_slide, clients)
     state
   end
-  defp advance_slide({previous_slides, current_slide, [next_slide|next_slides], clients}) do
+  defp advance_slide({uuid, previous_slides, current_slide, [next_slide|next_slides], clients}) do
     send_slide(next_slide, clients)
-    {[current_slide|previous_slides], next_slide, next_slides, clients}
+    {uuid, [current_slide|previous_slides], next_slide, next_slides, clients}
   end
 
-  defp rollback_slide({[], current_slide, _next_slides, clients} = state) do
+  defp rollback_slide({_uuid, [], current_slide, _next_slides, clients} = state) do
     send_slide(current_slide, clients)
     state
   end
-  defp rollback_slide({[next_slide|previous_slides], current_slide, next_slides, clients}) do
+  defp rollback_slide({uuid, [next_slide|previous_slides], current_slide, next_slides, clients}) do
     send_slide(next_slide, clients)
-    {previous_slides, next_slide, [current_slide|next_slides], clients}
+    {uuid, previous_slides, next_slide, [current_slide|next_slides], clients}
   end
 
   defp send_slide(slide, clients) when is_list(clients) do
