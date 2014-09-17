@@ -38,7 +38,7 @@ defmodule PresentationTest do
 
   test "presentations can be rendered as html" do
     presentation = P.add_slide(P.new("the-name", "the-author"), S.new("title"))
-    assert R.as_html(presentation) == "<section class=\"presentir-slide\"><h1 class=\"presentir-title\">the-name</h1><p class=\"presentir-paragraph\"></p>\n\n<p class=\"presentir-paragraph\">created by the-author</p>\n\n<p class=\"presentir-paragraph\">presented Tuesday, September 16 2014</p>\n\n</section>\n<hr>\n<section class=\"presentir-slide\"><h1 class=\"presentir-title\">title</h1></section>"
+    assert R.as_html(presentation) == "<section class=\"presentir-slide\"><h1 class=\"presentir-title\">the-name</h1><p class=\"presentir-paragraph\"></p>\n\n<p class=\"presentir-paragraph\">created by the-author</p>\n\n<p class=\"presentir-paragraph\">presented " <> now <> "</p>\n\n</section>\n<hr>\n<section class=\"presentir-slide\"><h1 class=\"presentir-title\">title</h1></section>"
   end
 
   defp now, do: Timex.DateFormat.format!(Timex.Date.local, "%A, %B %e %Y", :strftime)
