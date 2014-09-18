@@ -33,6 +33,10 @@ defmodule UnorderedListTest do
     assert length(UL.items(UL.add_items(UL.new(), ["foo", "bar"]))) == 2
   end
 
+  test "can add list of list of items" do
+    assert LI.content(List.first(UL.items(List.first((UL.items(UL.add_items(UL.new(), [UL.new(["foo"])]))))))) == "foo"
+  end
+
   test "unordered list can be rendered as text" do
     assert R.as_text(UL.new(["foo", "bar"])) == "    * foo\n\n    * bar"
   end

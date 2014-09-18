@@ -32,7 +32,7 @@ defmodule Presentir.UnorderedList do
   def add_items(ul, [item|rest_items]), do: add_items(add_item(ul, item), rest_items)
 
   def add_item(ul, string) when is_binary(string), do: add_item(ul, LI.new(string))
-  def add_item(ul, %Presentir.UnorderedListItem{} = item), do: %{ul | items: items(ul) ++ [item]}
+  def add_item(ul, item), do: %{ul | items: items(ul) ++ [item]}
 
   defimpl Presentir.Render, for: Presentir.UnorderedList do
     alias Presentir.UnorderedList, as: UL
