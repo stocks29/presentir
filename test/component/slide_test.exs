@@ -1,6 +1,5 @@
 defmodule SlideTest do
   use ExUnit.Case
-  alias Presentir.Presentation, as: P
   alias Presentir.Render, as: R
   alias Presentir.Slide, as: S
 

@@ -3,6 +3,7 @@ defmodule PresentationTest do
   alias Presentir.Presentation, as: P
   alias Presentir.Render, as: R
   alias Presentir.Slide, as: S
+  alias Presentir.Paragraph, as: Paragraph
 
   test "name is fetchable" do
     assert P.name(P.new("the-name", "the-author")) == "the-name"
@@ -22,6 +23,28 @@ defmodule PresentationTest do
 
   test "presentations have a title slide by default" do
     assert length(P.slides(P.new("the-name", "the-author"))) == 1
+  end
+
+  test "title slide's title is the presentation name" do
+    presentation = P.new("the-name", "the-author")
+    assert S.title(List.first(P.slides(presentation))) == "the-name"
+  end
+
+  test "first element in title slide's content is presentation description" do
+    presentation = P.new("the-name", "the-author", "the-description")
+    assert Paragraph.content(List.first(S.content(List.first(P.slides(presentation))))) == "the-description"
+  end
+
+  test "second element in title slide's content is info about the author" do
+    presentation = P.new("the-name", "the-author", "the-description")
+    [_first|[second|_rest]] = S.content(List.first(P.slides(presentation)))
+    assert Paragraph.content(second) == "created by the-author"
+  end
+
+  test "third element in title slide's content is info about when the presentation started" do
+    presentation = P.new("the-name", "the-author", "the-description")
+    [_first|[_second|[third|[]]]] = S.content(List.first(P.slides(presentation)))
+    assert Paragraph.content(third) == "presented " <> now
   end
 
   test "slides can be added to a presentation" do

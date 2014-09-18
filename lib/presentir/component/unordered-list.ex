@@ -1,11 +1,16 @@
 defmodule Presentir.UnorderedListItem do
+  alias Presentir.Render, as: R
+
   defstruct content: ""
+
+  def new(content \\ ""), do: %Presentir.UnorderedListItem{content: content}
+  def content(li), do: li.content
 
   defimpl Presentir.Render, for: Presentir.UnorderedListItem do
     def as_text(li), do: render_lines(li) |> format_lines() |> Enum.reverse() |> Enum.join("\n")
-    def as_html(li), do: "<li>" <> Presentir.Render.as_html(li.content) <> "</li>"
+    def as_html(li), do: "<li>" <> R.as_html(li.content) <> "</li>"
 
-    defp render_lines(li), do: Presentir.Render.as_text(li.content) |> String.split("\n")
+    defp render_lines(li), do: R.as_text(li.content) |> String.split("\n")
 
     defp format_lines(lines), do: format_lines(lines, [])
 
@@ -16,21 +21,25 @@ defmodule Presentir.UnorderedListItem do
 end
 
 defmodule Presentir.UnorderedList do
+  alias Presentir.UnorderedListItem, as: LI
+
   defstruct items: []
 
   def new(items \\ []), do: add_items(%Presentir.UnorderedList{}, items)
+  def items(ul), do: ul.items
 
   def add_items(ul, []), do: ul
   def add_items(ul, [item|rest_items]), do: add_items(add_item(ul, item), rest_items)
 
-  def add_item(ul, string) when is_binary(string) do
-    add_item(ul, %Presentir.UnorderedListItem{content: string}) 
-  end
-  def add_item(ul, item), do: %{ul | items: ul.items ++ [item]}
+  def add_item(ul, string) when is_binary(string), do: add_item(ul, LI.new(string))
+  def add_item(ul, %Presentir.UnorderedListItem{} = item), do: %{ul | items: items(ul) ++ [item]}
 
   defimpl Presentir.Render, for: Presentir.UnorderedList do
-    def as_text(ul), do: as_text(ul.items, "")
-    def as_html(ul), do: "<ul class=\"presentir-list\">" <> Presentir.Render.as_html(ul.items) <> "</ul>"
+    alias Presentir.UnorderedList, as: UL
+    alias Presentir.Render, as: R
+
+    def as_text(ul), do: as_text(UL.items(ul), "")
+    def as_html(ul), do: "<ul class=\"presentir-list\">" <> R.as_html(UL.items(ul)) <> "</ul>"
 
     defp as_text([], acc), do: acc
     defp as_text([item|more_items], acc) do
@@ -51,6 +60,6 @@ defmodule Presentir.UnorderedList do
 
     defp spaces(count), do: Enum.reduce(1..count, "", fn (_elem, acc) -> " " <> acc end)
 
-    defp rendered_lines(component), do: String.split(Presentir.Render.as_text(component), "\n")
+    defp rendered_lines(component), do: String.split(R.as_text(component), "\n")
   end
 end
