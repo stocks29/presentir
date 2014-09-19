@@ -38,6 +38,9 @@ defmodule Presentir.SlideServer do
   end
 
   def id(server), do: GenServer.call(server, :uuid)
+  def current_slide(server), do: GenServer.call(server, :current_slide)
+  def client_count(server), do: GenServer.call(server, :client_count)
+
 
 
   # Callbacks
@@ -45,12 +48,19 @@ defmodule Presentir.SlideServer do
     [current_slide|next_slides] = Presentation.slides(presentation)
     previous_slides = []
     clients = []
-    IO.puts "Starting presentation server #{inspect self()} -> #{uuid}"
     {:ok, {uuid, previous_slides, current_slide, next_slides, clients}}
   end
 
   def handle_call(:uuid, _from, {uuid, _, _, _, _} = state) do
     {:reply, uuid, state} 
+  end
+
+  def handle_call(:current_slide, _from, {_, _, current_slide, _, _} = state) do
+    {:reply, current_slide, state}
+  end
+
+  def handle_call(:client_count, _from, {_, _, _, _, clients} = state) do
+    {:reply, length(clients), state}
   end
 
   def handle_cast(:first_slide, state) do
@@ -85,7 +95,6 @@ defmodule Presentir.SlideServer do
         disconnect.(client)
       end, client)
     end)
-    IO.puts "Stopping presentation server #{inspect self()}"
     {:stop, :normal, state}
   end
 
@@ -153,7 +162,6 @@ defmodule Presentir.SlideServer do
 
   defp handle_send_result(:ok, _client), do: :ok
   defp handle_send_result(_, client) do 
-    IO.puts "removing dead client"
     remove_client(client)
   end
 
